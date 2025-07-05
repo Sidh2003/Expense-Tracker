@@ -1,96 +1,99 @@
-const form = document.getElementById("expenseForm");
-const category = document.getElementById("category");
-const customCategory = document.getElementById("customCategory");
-const loader = document.getElementById("btnLoader");
-const addBtn = document.getElementById("addBtn");
-const tableBody = document.getElementById("expenseTableBody");
+const darkToggle = document.querySelector(".toggle-darkmode");
+darkToggle.addEventListener("click", () =>
+  document.body.classList.toggle("dark")
+);
 
-category.addEventListener("change", () => {
-  customCategory.classList.toggle("hidden", category.value !== "Other");
-});
+let salary = localStorage.getItem("salary")
+  ? parseFloat(localStorage.getItem("salary"))
+  : 0;
+let expenses = JSON.parse(localStorage.getItem("expenses")) || [];
 
-form.addEventListener("submit", function (e) {
-  e.preventDefault();
+const salaryDisplay = document.getElementById("salaryDisplay");
+const totalExpense = document.getElementById("totalExpense");
+const balance = document.getElementById("balance");
+const expenseList = document.getElementById("expenseList");
+const chartCanvas = document.getElementById("expenseChart");
 
-  const name = document.getElementById("name").value.trim();
-  const amount = document.getElementById("amount").value.trim();
-  const note = document.getElementById("note").value.trim();
-  const categoryValue =
-    category.value === "Other" ? customCategory.value.trim() : category.value;
+function setSalary() {
+  const input = document.getElementById("salary");
+  salary = parseFloat(input.value);
+  localStorage.setItem("salary", salary);
+  input.value = "";
+  updateSummary();
+}
 
-  if (!name || !amount || !categoryValue) {
-    alert("Please fill all required fields.");
-    return;
-  }
+function addExpense() {
+  const name = document.getElementById("expenseName").value;
+  const amount = parseFloat(document.getElementById("expenseAmount").value);
+  const category = document.getElementById("expenseCategory").value;
 
-  addBtn.disabled = true;
-  loader.classList.remove("hidden");
+  if (!name || !amount || isNaN(amount))
+    return alert("Please enter valid expense");
 
-  setTimeout(() => {
-    const date = new Date().toLocaleDateString("en-IN", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    });
+  const expense = { id: Date.now(), name, amount, category };
+  expenses.push(expense);
+  localStorage.setItem("expenses", JSON.stringify(expenses));
 
-    const row = document.createElement("tr");
-    row.innerHTML = `
-      <td>${name}</td>
-      <td><strong>₹${parseFloat(amount).toFixed(2)}</strong></td>
-      <td>${categoryValue}</td>
-      <td>${note || "-"}</td>
-      <td>${date}</td>
-      <td>
-        <button class="edit-btn">Edit</button>
-        <button class="delete-btn">Delete</button>
-      </td>
-    `;
-    tableBody.appendChild(row);
+  document.getElementById("expenseName").value = "";
+  document.getElementById("expenseAmount").value = "";
 
-    form.reset();
-    customCategory.classList.add("hidden");
-    loader.classList.add("hidden");
-    addBtn.disabled = false;
-  }, 600);
-});
+  updateSummary();
+}
 
-// Edit + Delete functionality
-tableBody.addEventListener("click", function (e) {
-  const target = e.target;
-  const row = target.closest("tr");
+function deleteExpense(id) {
+  expenses = expenses.filter((e) => e.id !== id);
+  localStorage.setItem("expenses", JSON.stringify(expenses));
+  updateSummary();
+}
 
-  if (target.classList.contains("delete-btn")) {
-    row.remove();
-  }
+function updateSummary() {
+  let total = expenses.reduce((acc, e) => acc + e.amount, 0);
+  salaryDisplay.textContent = salary.toFixed(2);
+  totalExpense.textContent = total.toFixed(2);
+  balance.textContent = (salary - total).toFixed(2);
 
-  if (target.classList.contains("edit-btn")) {
-    const isSaving = target.textContent === "Save";
-    const cells = row.querySelectorAll("td");
+  renderExpenses();
+  renderChart();
+}
 
-    if (!isSaving) {
-      for (let i = 0; i < 4; i++) {
-        const val = cells[i].innerText.replace("₹", "").trim();
-        const input = document.createElement(i === 3 ? "textarea" : "input");
-        input.value = val === "-" ? "" : val;
-        input.style.width = "100%";
-        cells[i].innerHTML = "";
-        cells[i].appendChild(input);
-      }
-      target.textContent = "Save";
-      target.style.background = "#2980b9";
-    } else {
-      for (let i = 0; i < 4; i++) {
-        const value = cells[i].firstElementChild.value.trim();
-        if (i === 1) {
-          cells[i].innerHTML = `<strong>₹${parseFloat(value).toFixed(
-            2
-          )}</strong>`;
-        } else {
-          cells[i].textContent = value || "-";
-        }
-      }
-      target.textContent = "Edit";
-      target.style.background = "#27ae60";
-    }
-  }
-});
+function renderExpenses() {
+  expenseList.innerHTML = "";
+  expenses.forEach((e) => {
+    const div = document.createElement("div");
+    div.className = "card";
+    div.innerHTML = `
+          <span><strong>${e.name}</strong> - ₹${e.amount.toFixed(2)} (${
+      e.category
+    })</span>
+          <button onclick="deleteExpense(${e.id})">Delete</button>
+        `;
+    expenseList.appendChild(div);
+  });
+}
+
+let chart;
+function renderChart() {
+  const data = {};
+  expenses.forEach((e) => {
+    data[e.category] = (data[e.category] || 0) + e.amount;
+  });
+
+  const ctx = chartCanvas.getContext("2d");
+  if (chart) chart.destroy();
+
+  chart = new Chart(ctx, {
+    type: "pie",
+    data: {
+      labels: Object.keys(data),
+      datasets: [
+        {
+          label: "Expenses",
+          data: Object.values(data),
+          backgroundColor: ["#3498db", "#2ecc71", "#e74c3c", "#9b59b6"],
+        },
+      ],
+    },
+  });
+}
+
+updateSummary();

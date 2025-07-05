@@ -2,57 +2,257 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Expense Tracker - Siddhesh</title>
-  <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    :root {
+      --bg-light: #f5f7fa;
+      --bg-dark: #1e272e;
+      --text-light: #2c3e50;
+      --text-dark: #f1f2f6;
+      --card-bg: #ffffff;
+      --card-bg-dark: #2f3640;
+      --primary: #4e73df;
+      --danger: #e74a3b;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: var(--bg-light);
+      color: var(--text-light);
+      transition: 0.3s;
+      margin: 0;
+    }
+
+    body.dark {
+      background: var(--bg-dark);
+      color: var(--text-dark);
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 2rem;
+      color: var(--primary);
+    }
+
+    .toggle-darkmode {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .card {
+      background: var(--card-bg);
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+      transition: 0.3s;
+    }
+
+    body.dark .card {
+      background: var(--card-bg-dark);
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    input, select, button {
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+    }
+
+    button.add-btn {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      cursor: pointer;
+    }
+
+    button.delete-btn {
+      background: var(--danger);
+      color: white;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-left: 5px;
+    }
+
+    button.edit-btn {
+      background: #17a2b8;
+      color: white;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .expense-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .expense-item:last-child {
+      border-bottom: none;
+    }
+
+    .expense-label {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .expense-list {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 0;
+      overflow: hidden;
+    }
+  </style>
 </head>
 <body>
-
+  <button class="toggle-darkmode">🌙</button>
   <div class="container">
     <h1>💰 Expense Tracker</h1>
 
-    <form id="expenseForm" class="form">
-      <input type="text" id="name" placeholder="Expense Name" required />
-      <input type="number" id="amount" placeholder="Amount (₹)" required />
-      <select id="category" required>
-        <option value="">Select Category</option>
-        <option value="Food">🍔 Food</option>
-        <option value="Travel">🚕 Travel</option>
-        <option value="Bills">📄 Bills</option>
-        <option value="Other">➕ Other</option>
-      </select>
-      <input type="text" id="customCategory" placeholder="Custom Category" class="hidden" />
-      <textarea id="note" placeholder="Add a Note (Optional)"></textarea>
-      <button type="submit" id="addBtn">
-        <span class="loader hidden" id="btnLoader"></span>
-        Add Expense
-      </button>
-    </form>
-
-    <div class="table-wrapper">
-      <table>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Amount</th>
-            <th>Category</th>
-            <th>Note</th>
-            <th>Date</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody id="expenseTableBody"></tbody>
-      </table>
+    <div class="card">
+      <div class="form-group">
+        <input type="number" id="salary" placeholder="Enter Monthly Salary (₹)" />
+        <button class="add-btn" onclick="setSalary()">Set Salary</button>
+      </div>
     </div>
+
+    <div class="card">
+      <div class="form-group">
+        <input type="text" id="expenseName" placeholder="Expense Name" />
+        <input type="number" id="expenseAmount" placeholder="Amount (₹)" />
+        <select id="expenseCategory">
+          <option value="Food">🍔 Food</option>
+          <option value="Travel">🚕 Travel</option>
+          <option value="Bills">📄 Bills</option>
+          <option value="Other">➕ Other</option>
+        </select>
+        <button class="add-btn" onclick="addExpense()">Add Expense</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Summary</h3>
+      <p><strong>Monthly Salary:</strong> ₹<span id="salaryDisplay">0</span></p>
+      <p><strong>Total Expenses:</strong> ₹<span id="totalExpense">0</span></p>
+      <p><strong>Remaining Balance:</strong> ₹<span id="balance">0</span></p>
+    </div>
+
+    <div class="expense-list" id="expenseList"></div>
   </div>
 
-  <footer>
-    Developed by 
-    <a href="https://www.linkedin.com/in/siddhesh-sonavane/" target="_blank">Siddhesh Sonavane</a> | 
-    <a href="https://github.com/Sidh2003" target="_blank">GitHub</a>
-  </footer>
+  <script>
+    const darkToggle = document.querySelector('.toggle-darkmode');
+    darkToggle.addEventListener('click', () => document.body.classList.toggle('dark'));
 
-  <script src="chart.js"></script>
+    let salary = localStorage.getItem('salary') ? parseFloat(localStorage.getItem('salary')) : 0;
+    let expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+
+    const salaryDisplay = document.getElementById('salaryDisplay');
+    const totalExpense = document.getElementById('totalExpense');
+    const balance = document.getElementById('balance');
+    const expenseList = document.getElementById('expenseList');
+
+    function setSalary() {
+      const input = document.getElementById('salary');
+      salary = parseFloat(input.value);
+      localStorage.setItem('salary', salary);
+      input.value = '';
+      updateSummary();
+    }
+
+    function addExpense() {
+      const name = document.getElementById('expenseName').value;
+      const amount = parseFloat(document.getElementById('expenseAmount').value);
+      const category = document.getElementById('expenseCategory').value;
+
+      if (!name || !amount || isNaN(amount)) return alert('Please enter valid expense');
+
+      const expense = { id: Date.now(), name, amount, category };
+      expenses.push(expense);
+      localStorage.setItem('expenses', JSON.stringify(expenses));
+
+      document.getElementById('expenseName').value = '';
+      document.getElementById('expenseAmount').value = '';
+
+      updateSummary();
+    }
+
+    function deleteExpense(id) {
+      expenses = expenses.filter(e => e.id !== id);
+      localStorage.setItem('expenses', JSON.stringify(expenses));
+      updateSummary();
+    }
+
+    function editExpense(id) {
+      const index = expenses.findIndex(e => e.id === id);
+      if (index !== -1) {
+        const newName = prompt("Edit name", expenses[index].name);
+        const newAmount = parseFloat(prompt("Edit amount", expenses[index].amount));
+        const newCategory = prompt("Edit category", expenses[index].category);
+        if (newName && newAmount && newCategory) {
+          expenses[index] = { ...expenses[index], name: newName, amount: newAmount, category: newCategory };
+          localStorage.setItem('expenses', JSON.stringify(expenses));
+          updateSummary();
+        }
+      }
+    }
+
+    function updateSummary() {
+      let total = expenses.reduce((acc, e) => acc + e.amount, 0);
+      salaryDisplay.textContent = salary.toFixed(2);
+      totalExpense.textContent = total.toFixed(2);
+      balance.textContent = (salary - total).toFixed(2);
+      renderExpenses();
+    }
+
+    function renderExpenses() {
+      expenseList.innerHTML = '';
+      expenses.forEach(e => {
+        const div = document.createElement('div');
+        div.className = 'expense-item';
+        div.innerHTML = `
+          <div class="expense-label">
+            <strong>${e.name}</strong>
+            <small>₹${e.amount.toFixed(2)} - ${e.category}</small>
+          </div>
+          <div>
+            <button class="edit-btn" onclick="editExpense(${e.id})">Edit</button>
+            <button class="delete-btn" onclick="deleteExpense(${e.id})">Delete</button>
+          </div>
+        `;
+        expenseList.appendChild(div);
+      });
+    }
+
+    updateSummary();
+  </script>
 </body>
 </html>
