@@ -1,8 +1,3 @@
-const darkToggle = document.querySelector(".toggle-darkmode");
-darkToggle.addEventListener("click", () =>
-  document.body.classList.toggle("dark")
-);
-
 let salary = localStorage.getItem("salary")
   ? parseFloat(localStorage.getItem("salary"))
   : 0;
@@ -12,7 +7,6 @@ const salaryDisplay = document.getElementById("salaryDisplay");
 const totalExpense = document.getElementById("totalExpense");
 const balance = document.getElementById("balance");
 const expenseList = document.getElementById("expenseList");
-const chartCanvas = document.getElementById("expenseChart");
 
 function setSalary() {
   const input = document.getElementById("salary");
@@ -22,13 +16,41 @@ function setSalary() {
   updateSummary();
 }
 
-function addExpense() {
-  const name = document.getElementById("expenseName").value;
-  const amount = parseFloat(document.getElementById("expenseAmount").value);
+function toggleCustomCategory() {
   const category = document.getElementById("expenseCategory").value;
+  document.getElementById("customCategoryDiv").style.display =
+    category === "Other" ? "block" : "none";
+}
 
-  if (!name || !amount || isNaN(amount))
-    return alert("Please enter valid expense");
+function getCategoryIcon(category) {
+  switch (category) {
+    case "Food":
+      return "🍔";
+    case "Travel":
+      return "🚕";
+    case "Bills":
+      return "📄";
+    case "Other":
+      return "➕";
+    default:
+      return "📁";
+  }
+}
+
+function addExpense() {
+  const name = document.getElementById("expenseName").value.trim();
+  const amount = parseFloat(document.getElementById("expenseAmount").value);
+  let category = document.getElementById("expenseCategory").value;
+  const customCategory = document.getElementById("customCategory").value.trim();
+
+  if (category === "Other" && customCategory) {
+    category = customCategory;
+  }
+
+  if (!name || isNaN(amount) || !category) {
+    alert("Please enter valid expense details.");
+    return;
+  }
 
   const expense = { id: Date.now(), name, amount, category };
   expenses.push(expense);
@@ -36,6 +58,9 @@ function addExpense() {
 
   document.getElementById("expenseName").value = "";
   document.getElementById("expenseAmount").value = "";
+  document.getElementById("expenseCategory").value = "";
+  document.getElementById("customCategory").value = "";
+  document.getElementById("customCategoryDiv").style.display = "none";
 
   updateSummary();
 }
@@ -47,52 +72,29 @@ function deleteExpense(id) {
 }
 
 function updateSummary() {
-  let total = expenses.reduce((acc, e) => acc + e.amount, 0);
+  const total = expenses.reduce((sum, e) => sum + e.amount, 0);
   salaryDisplay.textContent = salary.toFixed(2);
   totalExpense.textContent = total.toFixed(2);
   balance.textContent = (salary - total).toFixed(2);
-
   renderExpenses();
-  renderChart();
 }
 
 function renderExpenses() {
   expenseList.innerHTML = "";
   expenses.forEach((e) => {
     const div = document.createElement("div");
-    div.className = "card";
+    div.className = "expense-item";
+    const icon = getCategoryIcon(e.category);
     div.innerHTML = `
-          <span><strong>${e.name}</strong> - ₹${e.amount.toFixed(2)} (${
-      e.category
-    })</span>
-          <button onclick="deleteExpense(${e.id})">Delete</button>
+          <div class="expense-label">
+            <strong><span class="category-icon">${icon}</span>${e.name}</strong>
+            <small>₹${e.amount.toFixed(2)} - ${e.category}</small>
+          </div>
+          <button class="btn btn-danger btn-sm" onclick="deleteExpense(${
+            e.id
+          })"><i class="fa fa-trash"></i></button>
         `;
     expenseList.appendChild(div);
-  });
-}
-
-let chart;
-function renderChart() {
-  const data = {};
-  expenses.forEach((e) => {
-    data[e.category] = (data[e.category] || 0) + e.amount;
-  });
-
-  const ctx = chartCanvas.getContext("2d");
-  if (chart) chart.destroy();
-
-  chart = new Chart(ctx, {
-    type: "pie",
-    data: {
-      labels: Object.keys(data),
-      datasets: [
-        {
-          label: "Expenses",
-          data: Object.values(data),
-          backgroundColor: ["#3498db", "#2ecc71", "#e74c3c", "#9b59b6"],
-        },
-      ],
-    },
   });
 }
 
