@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Expense Tracker - Siddhesh</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+</head>
+<body>
+
+  <div class="container">
+    <h1>💰 Expense Tracker</h1>
+
+    <form id="expenseForm" class="form">
+      <input type="text" id="name" placeholder="Expense Name" required />
+      <input type="number" id="amount" placeholder="Amount (₹)" required />
+      <select id="category" required>
+        <option value="">Select Category</option>
+        <option value="Food">🍔 Food</option>
+        <option value="Travel">🚕 Travel</option>
+        <option value="Bills">📄 Bills</option>
+        <option value="Other">➕ Other</option>
+      </select>
+      <input type="text" id="customCategory" placeholder="Custom Category" class="hidden" />
+      <textarea id="note" placeholder="Add a Note (Optional)"></textarea>
+      <button type="submit" id="addBtn">
+        <span class="loader hidden" id="btnLoader"></span>
+        Add Expense
+      </button>
+    </form>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Amount</th>
+            <th>Category</th>
+            <th>Note</th>
+            <th>Date</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="expenseTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer>
+    Developed by 
+    <a href="https://www.linkedin.com/in/siddhesh-sonavane/" target="_blank">Siddhesh Sonavane</a> | 
+    <a href="https://github.com/Sidh2003" target="_blank">GitHub</a>
+  </footer>
+
+  <script src="chart.js"></script>
+</body>
+</html>
